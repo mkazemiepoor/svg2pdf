@@ -72,7 +72,15 @@ dispatch(new \App\Jobs\ConvertSvgJob($svgJobId));
 ## API Endpoints
 
 - `POST /api/upload` — Upload one or more SVG files
+    CURL Sample:
+        curl -X POST http://172.16.3.1/api/svg/upload -F "files[]=@/home/www/portaltvto.com/application/modules/tasis/svg/b.svg" -F "files[]=@/home/www/portaltvto.com/application/modules/tasis/svg/a.svg"
+        Responce:
+        {"batch_id":"505e6a0a-5737-4f5a-8c24-0d12c21d2edb","status":"Processing","url":"http:\/\/172.16.3.1","svg":["\/var\/www\/svg-converter\/storage\/app\/public\/svg\/505e6a0a-5737-4f5a-8c24-0d12c21d2edb-cDd9PziU6y.svg","\/var\/www\/svg-converter\/storage\/app\/public\/svg\/505e6a0a-5737-4f5a-8c24-0d12c21d2edb-g8qNQ9dfcn.svg"]}
 - `GET /api/status/{job_id}` — Check status of a conversion job
+    CURL Sample:
+        curl http://172.16.3.1/api/svg/status/505e6a0a-5737-4f5a-8c24-0d12c21d2edb
+        Responce:
+        {"status":"success","pdf_exists":true,"pdf":"http:\/\/172.16.3.1\/storage\/505e6a0a-5737-4f5a-8c24-0d12c21d2edb.pdf","pngs":{"12":"http:\/\/172.16.3.1\/storage\/505e6a0a-5737-4f5a-8c24-0d12c21d2edb-505e6a0a-5737-4f5a-8c24-0d12c21d2edb-cDd9PziU6y.png","13":"http:\/\/172.16.3.1\/storage\/505e6a0a-5737-4f5a-8c24-0d12c21d2edb-505e6a0a-5737-4f5a-8c24-0d12c21d2edb-g8qNQ9dfcn.png"},"actual_pngs":2}
 
 ## Output Files
 
