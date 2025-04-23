@@ -1,121 +1,92 @@
+# SVG to PDF & PNG Converter (Laravel Project)
 
-# SVG Converter API
+This Laravel application allows clients to upload one or more SVG files. The system converts these SVGs into:
+- PNG images (one per page)
+- A single multi-page PDF
 
-این پروژه یک API ساده برای آپلود فایل‌های SVG و تبدیل آن‌ها به خروجی‌های PNG و PDF است. فایل‌ها به صورت asynchronous پردازش شده و خروجی‌ها در مسیر `storage/app/public` ذخیره می‌شوند.
+Converted files are stored in `storage/app/public`, and the status of conversion is tracked.
 
----
+## Features
 
-## 🚀 نصب و اجرا
+- Accepts one or more SVG files via API
+- Embeds externally linked images (e.g., via `<image xlink:href="http://...">`) as Base64 into the SVG
+- Converts each SVG into:
+  - A single PDF file (multi-page if multiple SVGs)
+  - Separate PNG files (one PNG per SVG)
+- Saves the output files in the storage directory
+- Exposes API endpoints to track conversion status
+
+## Technologies Used
+
+- Laravel
+- PHP-FPM
+- Nginx
+- MariaDB
+- Queues (Redis/Database)
+- SVG parsing and conversion libraries
+
+## Setup
+
+### Prerequisites
+
+- PHP 8.1+
+- Composer
+- Nginx or Apache
+- Laravel 10+
+- Redis (optional, for queue performance)
+- ImageMagick or similar for conversion
+
+### Installation
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+git clone https://github.com/YOUR_USERNAME/svg2pdf.git
+cd svg2pdf
 composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-php artisan queue:work
-php artisan serve
+php artisan storage:link
 ```
 
-> ⚠️ اطمینان حاصل کنید که ابزار `rsvg-convert` روی سیستم نصب شده باشد:
+Set up your database and configure `.env` accordingly.
+
+### Queue Worker
+
+To start queue workers and process jobs:
+
 ```bash
-sudo apt install librsvg2-bin
+php artisan queue:work
 ```
 
----
+You can also use `supervisor` or a systemd service to keep workers running in production.
 
-## 🧪 API Endpoints
+### Running Conversion Manually (For Testing)
 
-### 1. بارگذاری فایل‌های SVG
+You can manually dispatch a job if needed:
 
-**URL:** `POST /api/svg/upload`  
-**Headers:**
-```
-Content-Type: multipart/form-data
-Accept: application/json
+```php
+// Example
+dispatch(new \App\Jobs\ConvertSvgJob($svgJobId));
 ```
 
-**Body:**
-```form
-files[]: file1.svg
-files[]: file2.svg
-...
+## API Endpoints
+
+- `POST /api/upload` — Upload one or more SVG files
+- `GET /api/status/{job_id}` — Check status of a conversion job
+
+## Output Files
+
+Converted files are saved in:
+
+```
+storage/app/public/
+├── {job_id}/
+    ├── output.pdf
+    ├── page_1.png
+    ├── page_2.png
+    └── ...
 ```
 
-**Response:**
-```json
-{
-  "batch_id": "49bfa34a-df5a-4cd7-b4f4-9f3cc4e3e962",
-  "status": "Processing",
-  "url": "http://your-domain.com",
-  "svg": [
-    "/absolute/path/to/file1.svg",
-    "/absolute/path/to/file2.svg"
-  ]
-}
-```
+## License
 
----
-
-### 2. بررسی وضعیت تبدیل فایل‌ها
-
-**URL:** `GET /api/svg/status/{batch_id}`
-
-**Response:**
-```json
-{
-  "status": "success",  // یا "processing"
-  "pdf_exists": true,
-  "pdf": "http://your-domain.com/storage/{batch_id}.pdf",
-  "pngs": [
-    "http://your-domain.com/storage/{batch_id}-file1.png",
-    "http://your-domain.com/storage/{batch_id}-file2.png"
-  ],
-  "actual_pngs": 2
-}
-```
-
----
-
-## 🧰 ساختار سیستم
-
-- `SvgController`: دریافت فایل و dispatch کردن job
-- `ConvertImageJob`: اجرای async برای تبدیل‌ها
-- `ImageToPdfService`: تبدیل فایل‌ها و ساخت PDF چند صفحه‌ای
-- Queue: برای پردازش background
-- Storage: برای ذخیره فایل‌ها در `storage/app/public`
-
----
-
-## 📁 مسیرهای فایل
-
-| نوع فایل | مسیر ذخیره |
-|----------|-------------|
-| SVG | `storage/app/public/uuid-filename.svg` |
-| PNG | `storage/app/public/uuid-filename.png` |
-| PDF | `storage/app/public/uuid.pdf` |
-
----
-
-## 📦 وابستگی‌ها
-
-- Laravel 10+
-- PHP 8.1+
-- [clegginabox/pdf-merger](https://github.com/clegginabox/pdf-merger)
-- ابزار `rsvg-convert` برای تبدیل SVG به PNG/PDF
-
----
-
-## 🛠 نکات توسعه
-
-- فایل‌های PNG به صورت جداگانه ذخیره می‌شوند.
-- یک فایل PDF نهایی از همه صفحات ایجاد می‌شود.
-- پردازش به صورت async توسط Queue انجام می‌شود.
-- امکان گسترش سیستم برای OCR، افزودن واترمارک یا فشرده‌سازی وجود دارد.
-
----
-
-## 📃 لایسنس
-
-MIT License
+MIT License.
